@@ -1,5 +1,5 @@
 import math
-import sys
+import sy
 import random
 from miller import miller
 from generadores import generador
