@@ -1,118 +1,12 @@
 import math
 import sys
 import random
+from miller import miller
+from generadores import generador
+from verificadores import sonNumeros
 
-def miller(n):
-	probable = False
-	if n > 3 and n % 2 != 0: # n debe ser mayor que 11 y ser impar
-		m = n - 1
-		s_d = sd(m) # Hay que expresar n - 1 como una potencia de 2 multiplicado por un numero impar: (2 ^ s) * d
-		s = s_d[0]
-		d = s_d[1]
-		for a in xrange(2, n):
-			probable = False
-			x = pow(a, d, n) # Si x = 1 o x = n - 1 pasar
-			if s > 1 and (x != 1 or x != n - 1):
-				for r in xrange(1, s): # de r = 1 hasta s - 1
-					temporal = int(math.pow(2, r) * d) # temporal = (2 ^ r) * d
-					x = pow(a, temporal, n) # x = (a ^ temporal) mod n
-					# x = {a ^ [(2 ^ r) * d]} mod n
-					if x == 1 or x == n - 1: # Si al menos uno es igual a esos, entonces es posible que sea primo, rompe el ciclo secundario
-						probable = True
-						break
-			elif x == 1 or x == n - 1: # Si s es igual a 1 y x igual a esos valores entonces es primo, rompe el ciclo principal
-				probable = True
-				break
-			if not probable: # Rompe el ciclo principal
-				break
-	if n == 1:
-		probable = False
-	elif n == 2 or n == 3:
-		probable = True
-	return probable
-	
-def sd(m):
-	s = 1
-	d = 0
-	while True:
-		d = int(m / math.pow(2, s))
-		if d % 2 == 0: # Hay que evaluar si el numero que multiplica es par o impar
-			s += 1
-		else:
-			break
-	return (s, d)
-
-# miller y sd - > se ocupan para verificar que un numero es primo
-
-def divisores(factores):
-	contadores = []
-	auxiliar = factores[0]
-	suma = 0
-	for i in xrange(0, len(factores)):
-		if factores[i] == auxiliar:
-			suma += 1
-		else:
-			contadores.append((auxiliar, suma))
-			auxiliar = factores[i]
-			suma = 1
-		if i == len(factores) - 1:
-			contadores.append((auxiliar, suma))
-	divisores = []
-	if len(factores) > 1:
-		divisores = [1]
-		for i in xrange(0, len(contadores)):
-			posicionultimo = len(divisores) - 1
-			auxiliar = contadores[i]
-			factor = auxiliar[0] # factor primo
-			repeticiones = auxiliar[1] # potencias del factor primo de arriba
-			for j in xrange(0, posicionultimo + 1):
-				temporal = factor * divisores[j] # temporal es igual al factor por cada uno de los factores primos
-				for k in xrange(1, repeticiones + 1):
-					divisores.append(temporal)
-					temporal = factor * temporal # temporal se multiplica con el factor, es decir, con las potencias del factor
-	elif factores[0] == 1:
-		divisores = [1]
-	else:
-		divisores = [1]
-		divisores.append(factores[0])
-	divisores.sort()
-	return divisores
-	
-def factorizar(n):
-	factores = []
-	if n > 1:
-		for i in xrange(2, n + 1):
-			while n % i == 0:
-				n = n / i
-				factores.append(i)
-			if n == 1:
-				break
-	elif n == 1:
-		factores.append(n)
-	return factores
-
-# divisores y factorizar - > se ocupan para verificar que un numero es generador de otro
-
-def generador(p):
-	generadores = []
-	factores = factorizar(p - 1)
-	divisor = divisores(factores)
-	for i in xrange(2, p - 1):
-		esgenerador = validargenerador(i, divisor, p)
-		if esgenerador: # es generador i de p
-			generadores.append(i)
-	return generadores
-
-def validargenerador(g, divisores, m): # g es generador, m es el modulo
-	esgenerador =  True
-	for i in xrange(1, len(divisores) - 1): # no hay que evaluar el primer y ultimo divisor
-		auxiliar = pow(g, divisores[i], m)
-		if auxiliar == 1: # si al menos una de las evaluaciones es igual a 1, no es generador
-			esgenerador = False
-			break
-	return esgenerador
-
-# generador y validargenerador - > se ocupan para encontrar todos los generadores de un numero
+# miller -> se ocupa para verificar que un numero es primo
+# generador -> se ocupa para encontrar todos los generadores de un numero
 
 def comprobargrupo(generadores, p):
 	for i in generadores:
@@ -126,23 +20,42 @@ def comprobargrupo(generadores, p):
 
 # solo para visualizar mejor que es un generador de un grupo
 
-def funciones(parametros):
-	p = parametros[0]
-	g = parametros[1]
-	x = parametros[2]
-	y = parametros[3]
+def hackeo(p, g, fx, fy):
+	(temporal, hacked_x, hacked_y, last_k) = 0, 0, 0, 0
+	(ishacked_x, ishacked_y) = False, False
+	print '\nempieza el hack'
+	for k in xrange(1, p):
+		temporal = pow(g, k, p)
+		if p < 100:
+			print k, temporal
+		if temporal == fx:
+			hacked_x = k
+			ishacked_x = True
+		if temporal == fy:
+			hacked_y = k
+			ishacked_y = True
+		if ishacked_x and ishacked_y:
+			last_k = k
+			print '\nlast k'
+			print last_k
+			print '\nhack terminado\n'
+			break
+	print 'x y'
+	print hacked_x, hacked_y
+	print '\n'
+
+def funciones(p, g, x, y):
 	fx = pow(g, x, p)
 	fy = pow(g, y, p)
 	llave = pow(fx, y, p)
 	key = pow(fy, x, p)
-	funciones = (fx, fy)
-	llaves = (llave, key)
 	print
-	print 'funciones: fx, fy'
-	print funciones
+	print 'fx, fy'
+	print fx, fy
 	print
 	print 'llaves'
-	print llaves
+	print llave, key
+	return (fx, fy, key)
 	
 
 def diffie(p):
@@ -159,11 +72,13 @@ def diffie(p):
 		y = 0
 		while y == x or y == 0:
 			y = random.randrange(1, p)
-		parametros = (p, g, x, y)
 		print
 		print 'p, g, x, y'
-		print parametros
-		funciones(parametros)
+		print p, g, x, y
+		resultados = funciones(p, g, x, y)
+		fx = resultados[0]
+		fy = resultados[1]
+		hackeo(p, g, fx, fy)
 	else:
 		print str(p) + ' no es un numero primo'
 
@@ -171,17 +86,13 @@ if len(sys.argv) != 2:
 	print 'El numero de argumentos es invalido'
 else:
 	isnumber = True
-	ispositive = True
 	limite = 11
-	for i in xrange(1, len(sys.argv)): # Desde sys.argv[1] hasta sys.argv[len(sys.argv) - 1]
-		if not sys.argv[i].isdigit(): # Si alguno de los argumentos no son numeros
-			isnumber = False
-			break
-		elif not int(sys.argv[i]) > limite:
-			ispositive = False # Si alguno de los argumentos que si son numeros no son mayores que el limite
-			break
-	if isnumber and ispositive:
+	areNumber = sonNumeros(sys.argv) # Verificar que son numeros desde sys.argv[1] hasta sys.argv[len(sys.argv) - 1]
+	if areNumber:
 		p = int(sys.argv[1])
-		diffie(p)
+		if p > 11:
+			diffie(p)
+		else:
+			print 'El numero debe ser mayor que 11'
 	else:
-		print 'Todos los argumentos deben ser numeros enteros mayores que '  + str(limite)
+		print 'Todos los argumentos deben ser numeros enteros'
