@@ -65,13 +65,7 @@ class Diffie:
 		self.generadores()
 		self.Alice = Persona(self.p, self.g, "Alice")
 		self.Bob = Persona(self.p, self.g, "Bob")
-		self.Alice.construirLlave(self.Bob.eval)
-		self.Bob.construirLlave(self.Alice.eval)
-		self.Alice.verPersona()
-		self.Bob.verPersona()
 		self.Mallory = Hacker(self.p, self.g, "Mallory")
-		self.Mallory.hackeo(self.Alice.eval, self.Bob.eval)
-		self.Mallory.verPersona()
 		
 	def generadores(self):
 		self.generadores = generador(self.p)
@@ -95,6 +89,12 @@ def main(p):
 	isprime = miller(p) # p es primo o no
 	if isprime:
 		diffie = Diffie(p)
+		diffie.Alice.construirLlave(diffie.Bob.eval)
+		diffie.Bob.construirLlave(diffie.Alice.eval)
+		diffie.Alice.verPersona()
+		diffie.Bob.verPersona()
+		diffie.Mallory.hackeo(diffie.Alice.eval, diffie.Bob.eval)
+		diffie.Mallory.verPersona()
 	else:
 		print str(p) + ' no es un numero primo'
 
