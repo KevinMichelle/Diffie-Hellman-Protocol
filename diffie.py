@@ -8,6 +8,7 @@ from generadores import generador
 # generador -> se ocupa para encontrar todos los generadores de un numero
 
 class Persona:
+
 	def __init__(self, p, g, name):
 		self.name = name
 		self.p = p
