@@ -3,82 +3,97 @@ import sys
 import random
 from miller import miller
 from generadores import generador
-from verificadores import sonNumeros
 
 # miller -> se ocupa para verificar que un numero es primo
 # generador -> se ocupa para encontrar todos los generadores de un numero
 
-def comprobargrupo(generadores, p):
-	for i in generadores:
-		grupo = []
-		for j in xrange(1, p):
-			auxiliar = pow(i, j, p)
-			grupo.append(auxiliar)
-		grupo.sort()
-		print 'Generador: ' + str(i)
-		print grupo
-
-# solo para visualizar mejor que es un generador de un grupo
-
-def hackeo(p, g, fx, fy):
-	(temporal, hacked_x, hacked_y, last_k) = 0, 0, 0, 0
-	(ishacked_x, ishacked_y) = False, False
-	print '\nempieza el hack'
-	for k in xrange(1, p):
-		temporal = pow(g, k, p)
-		if p < 100:
+class Persona:
+	def __init__(self, p, g, name):
+		self.name = name
+		self.p = p
+		self.g = g
+		self.llave_privada = random.randrange(1, p)
+		self.eval = 0
+		self.llave_compartida = 0
+		self.evaluarLlave()
+		
+	def evaluarLlave(self):
+		self.eval = pow(self.g, self.llave_privada, self.p)
+			
+	def construirLlave(self, res_distinto):
+		self.llave_compartida = pow(res_distinto, self.llave_privada, self.p)
+		
+	def verPersona(self):
+		print self.name, self.llave_privada, self.eval, self.llave_compartida
+		
+class Hacker(Persona):
+		
+	def __init__(self, p, g, name):
+		self.name = name
+		self.p = p
+		self.g = g
+		self.llave_privada = 0
+		self.eval = 0
+		self.llave_compartida = 0
+	
+	def hackeo(self, fx, fy):
+		print
+		print 'empieza el hackeo'
+		for k in xrange(1, p):
+			temporal = pow(self.g, k, self.p)
 			print k, temporal
-		if temporal == fx:
-			hacked_x = k
-			ishacked_x = True
-		if temporal == fy:
-			hacked_y = k
-			ishacked_y = True
-		if ishacked_x and ishacked_y:
-			last_k = k
-			print '\nlast k'
-			print last_k
-			print '\nhack terminado\n'
-			break
-	print 'x y'
-	print hacked_x, hacked_y
-	print '\n'
+			if temporal == fx:
+				self.llave_privada = k
+				self.evaluarLlave()
+				self.construirLlave(fy)
+				break
+			elif temporal == fy:
+				self.llave_privada = k
+				self.evaluarLlave()
+				self.construirLlave(fx)
+				break
+		print 'fin del hackeo'
+		print
+		self.evaluarLlave()
+		
+class Diffie:
 
-def funciones(p, g, x, y):
-	fx = pow(g, x, p)
-	fy = pow(g, y, p)
-	llave = pow(fx, y, p)
-	key = pow(fy, x, p)
-	print
-	print 'fx, fy'
-	print fx, fy
-	print
-	print 'llaves'
-	print llave, key
-	return (fx, fy, key)
+	def __init__(self, p):
+		self.p = p
+		self.g = 0
+		self.generadores()
+		self.Alice = Persona(self.p, self.g, "Alice")
+		self.Bob = Persona(self.p, self.g, "Bob")
+		self.Alice.construirLlave(self.Bob.eval)
+		self.Bob.construirLlave(self.Alice.eval)
+		self.Alice.verPersona()
+		self.Bob.verPersona()
+		self.Mallory = Hacker(self.p, self.g, "Mallory")
+		self.Mallory.hackeo(self.Alice.eval, self.Bob.eval)
+		self.Mallory.verPersona()
+		
+	def generadores(self):
+		self.generadores = generador(self.p)
+		posicion = random.randrange(0, len(self.generadores))
+		self.g = self.generadores[posicion]
+		
+	def comprobargrupo(generadores, p):
+		for i in generadores:
+			grupo = []
+			for j in xrange(1, p):
+				auxiliar = pow(i, j, p)
+				grupo.append(auxiliar)
+			grupo.sort()
+			print 'Generador: ' + str(i)
+			print grupo
+			
+	# solo para visualizar mejor que es un generador de un grupo, no utilizado
 	
 
-def diffie(p):
+def main(p):
 	isprime = miller(p) # p es primo o no
 	if isprime:
-		print
-		print 'generadores'
-		generadores = generador(p)
-		print generadores
-		#comprobargrupo(generadores, p)
-		posicion = random.randrange(0, len(generadores))
-		g = generadores[posicion]
-		x = random.randrange(1, p)
-		y = 0
-		while y == x or y == 0:
-			y = random.randrange(1, p)
-		print
-		print 'p, g, x, y'
-		print p, g, x, y
-		resultados = funciones(p, g, x, y)
-		fx = resultados[0]
-		fy = resultados[1]
-		hackeo(p, g, fx, fy)
+		diffie = Diffie(p)
 	else:
 		print str(p) + ' no es un numero primo'
 
@@ -87,11 +102,10 @@ if len(sys.argv) != 2:
 else:
 	isnumber = True
 	limite = 11
-	areNumber = sonNumeros(sys.argv) # Verificar que son numeros desde sys.argv[1] hasta sys.argv[len(sys.argv) - 1]
-	if areNumber:
+	if sys.argv[1].isdigit():
 		p = int(sys.argv[1])
 		if p > 11:
-			diffie(p)
+			main(p)
 		else:
 			print 'El numero debe ser mayor que 11'
 	else:
