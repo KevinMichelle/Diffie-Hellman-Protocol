@@ -25,7 +25,7 @@ class Persona:
 		self.llave_compartida = pow(eval_distinto, self.llave_privada, self.p)
 		
 	def verPersona(self):
-		print self.name, self.llave_privada, self.eval, self.llave_compartida
+		print "{}: llave privada {} - evaluacion {} - llave compartida {}".format(self.name, self.llave_privada, self.eval, self.llave_compartida)
 		
 class Hacker(Persona):
 		
