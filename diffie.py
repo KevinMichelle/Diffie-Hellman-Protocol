@@ -21,8 +21,8 @@ class Persona:
 	def evaluarLlave(self):
 		self.eval = pow(self.g, self.llave_privada, self.p)
 			
-	def construirLlave(self, res_distinto):
-		self.llave_compartida = pow(res_distinto, self.llave_privada, self.p)
+	def construirLlave(self, eval_distinto):
+		self.llave_compartida = pow(eval_distinto, self.llave_privada, self.p)
 		
 	def verPersona(self):
 		print self.name, self.llave_privada, self.eval, self.llave_compartida
@@ -63,6 +63,9 @@ class Diffie:
 		self.p = p
 		self.g = 0
 		self.generadores()
+		print 'p, g'
+		print self.p, self.g
+		print
 		self.Alice = Persona(self.p, self.g, "Alice")
 		self.Bob = Persona(self.p, self.g, "Bob")
 		self.Mallory = Hacker(self.p, self.g, "Mallory")
